@@ -12,7 +12,8 @@ services:
     restart: always
     ports:
       - 8000:8000
-    # command: ./shell.sh
+  
+  #  command: php artisan migrate
 
   database:
     image: mysql:8.0
