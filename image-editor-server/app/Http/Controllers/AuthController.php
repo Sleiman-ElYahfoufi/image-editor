@@ -2,93 +2,36 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\LoginTracker;
-use App\Models\User;
-use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
-use Illuminate\Support\Facades\Validator;
+use App\Http\Requests\CreateAuthRequest;
+use App\Services\AuthService;
+use App\Services\UserCreationService;
+
 
 class AuthController extends Controller
 {
-    function login(Request $request)
+    function login(CreateAuthRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
-            'password' => 'required|string|min:6',
-        ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                "msg" => "Missing Fields",
-                "errors" => $validator->errors()
-            ], 422);
+
+        $response = AuthService::loginUser($request->validated());
+        if (isset($response['error'])) {
+            return $this->errorResponse($response['error'], 401);
         }
 
-        $credentials = [
-            "email" => $request->email,
-            "password" => $request->password
-        ];
-
-        if (!Auth::attempt($validator->validated())) {
-            return response()->json([
-                "success" => false,
-                "msg" => "Unauthorized"
-            ], 401);
-        }
-
-        $user = Auth::user();
-        $user->token = JWTAuth::fromUser($user);
-
-        $trackingRequest = new Request([
-            "user_id" => $user->id,
-            "ip_address" => $request->ip_address,
-            "latitude" => $request->latitude,
-            "longitude" => $request->longitude,
-        ]);
-
-        $loginTrackerController = new LoginTrackerController();
-        $response =  $loginTrackerController->addDetails($trackingRequest);
-        if ($response->getStatusCode() !== 200) {
-            $responseContent = json_decode($response->getContent(), true);
-
-            return response()->json([
-                "success" => false,
-                "error" => "Login tracking failed",
-                "details" => $responseContent
-            ], $response->getStatusCode());
-        }
-
-
-        return response()->json([
-            "success" => true,
-            "user" => $user
-        ]);
+        return $this->successResponse($response, 201);
     }
 
-    function signup(Request $request)
+    function signup(CreateAuthRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:6',
-        ]);
 
-        if ($validator->fails()) {
+        $response = UserCreationService::createUser($request->validated());
 
-            return response()->json([
-                "errors" => $validator->errors()
-            ], 422);
+        if (isset($response['error'])) {
+            return $this->errorResponse($response['error'], 401);
         }
 
-        $user = new User;
-        $user->email = $request->email;
-        $user->password = bcrypt($request->password);
-        $user->save();
 
-        return response()->json([
-            "success" => true,
-            "msg" => "Sign Up Successful!"
-        ]);
+        return $this->successResponse($response, 201);
+
     }
 }
