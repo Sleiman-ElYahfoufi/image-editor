@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Hash;
 
 class UserCreationService
 {
-    public static function createUser(array $userData)
+    public static function createUser($userData)
     {
         try {
             $user = User::create([

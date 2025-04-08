@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Services;
+
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -8,27 +9,28 @@ use PHPOpenSourceSaver\JWTAuth\Facades\JWTAuth;
 
 class AuthService
 {
-   public static function loginUser(array $userData)
-   {
-    try {
-    
-    if (!Auth::attempt($userData)) {
-        return [
-            "success" => false,
-            "error" => "Unauthorized"
-        ];
-    } 
+    public static function loginUser($userData)
+    {
+        try {
 
-    $user = Auth::user();
-    $user->token = JWTAuth::fromUser($user);
+            if (!Auth::attempt($userData)) {
+                return [
+                    "success" => false,
+                    "error" => "Unauthorized"
+                ];
+            }
 
-    return [
-        "success" => true,
-        "user" => $user
-    ];
-} catch (\Exception $e) { 
-    return [
-        'error' => $e->getMessage()];
-}
-   }
+            $user = Auth::user();
+            $user->token = JWTAuth::fromUser($user);
+
+            return [
+                "success" => true,
+                "user" => $user
+            ];
+        } catch (\Exception $e) {
+            return [
+                'error' => $e->getMessage()
+            ];
+        }
+    }
 }
