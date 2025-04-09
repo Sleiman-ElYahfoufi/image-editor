@@ -10,7 +10,7 @@ Route::group(["prefix" => "v0.1"], function () {
     Route::group(["middleware" => "auth:api"], function () {
 
         Route::group(["prefix" => "user"], function () {
-            Route::get('/add-details', [LoginTrackerController::class, "addDetails"]);
+            Route::post('/add-details', [LoginTrackerController::class, "addDetails"]);
         });
     });
 
