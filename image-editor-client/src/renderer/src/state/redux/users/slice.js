@@ -3,28 +3,15 @@ import { createSlice } from "@reduxjs/toolkit";
 const usersSlice = createSlice({
   name: "users",
   initialState: {
-    list: [],
     loading: false,
   },
   reducers: {
-    loadingUsers: (current, action) => {
-      return {
-        ...current,
-        loading: true,
-      };
-    },
-    loadUsers: (current, action) => {
-      const users = action.payload;
-
-      return {
-        ...current,
-        loading: false,
-        list: users,
-      };
+    setLoading: (state, action) => {
+      state.loading = action.payload;
     },
   },
 });
 
-export const { loadingUsers, loadUsers } = usersSlice.actions;
+export const { setLoading } = usersSlice.actions;
 
 export default usersSlice;
