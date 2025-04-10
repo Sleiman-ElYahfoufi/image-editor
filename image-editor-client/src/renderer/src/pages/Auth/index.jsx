@@ -40,6 +40,38 @@ const Auth = () => {
       setShowAlert(false);
     }, 2000);
   };
+  const getLoginDetails = async () => {
+    try {
+      const response = await fetch('https://ipapi.co/json');
+      const data = await response.json();
+      return data;
+    } catch (error) {
+      console.error('Error getting IP:', error);
+      return null;
+    }
+  };
+  const trackLoginDetails = async (userId) => {
+    try {
+      
+      const { latitude, longitude, ip } = await getLoginDetails();
+      const response = await request({
+        body: {
+          user_id: userId,
+          ip_address: ip ,
+          latitude: latitude ,
+          longitude: longitude
+        },
+        method: "POST",
+        route: "user/add-details",
+        auth : true
+      });
+      
+      return response;
+    } catch (error) {
+      console.error('Error tracking login:', error);
+      return { error: 'Failed to track login details' };
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -82,41 +114,10 @@ const Auth = () => {
     }
   };
 
-  const getLoginDetails = async () => {
-    try {
-      const response = await fetch('https://ipapi.co/json');
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error('Error getting IP:', error);
-      return null;
-    }
-  };
 
 
-  const trackLoginDetails = async (userId) => {
-    try {
-      
-      const { latitude, longitude, ip } = await getLoginDetails();
-      const response = await request({
-        body: {
-          user_id: userId,
-          ip_address: ip ,
-          latitude: latitude ,
-          longitude: longitude
-        },
-        method: "POST",
-        route: "user/add-details",
-        auth :true
-      });
-      
-      return response;
-    } catch (error) {
-      console.error('Error tracking login:', error);
-      return { error: 'Failed to track login details' };
-    }
-  };
 
+ 
 
   return (
     <Container fluid>
