@@ -12,6 +12,7 @@ const usersSlice = createSlice({
   },
 });
 
+
 export const { setLoading } = usersSlice.actions;
 
 export default usersSlice;
