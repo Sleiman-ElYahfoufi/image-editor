@@ -24,8 +24,8 @@ trait ResponseTrait
 
     public function failedValidation(Validator $validator){
         throw new HttpResponseException (response()->json([
-            "result" => $validator->errors(),
+            "payload" => $validator->errors(),
             "success" => false
-        ]));
+        ], 206));
     }
 }
