@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import useForm from '../../hooks/useForm'
 import { request } from '../../utils/request'
-import { setLoading } from '../../state/redux/users/slice' // Updated import
+import { setLoading } from '../../state/redux/users/slice' 
 import { useDispatch, useSelector } from 'react-redux'
 import {
   Container,
@@ -113,7 +113,7 @@ const Auth = () => {
             showTimedAlert('Authentication successful!', 'success')
             dispatch(setLoading(false))
 
-            // navigate("/dashboard");
+             navigate("/gallery");
           } else {
             showTimedAlert('Authentication successful!', 'success')
             dispatch(setLoading(false))
