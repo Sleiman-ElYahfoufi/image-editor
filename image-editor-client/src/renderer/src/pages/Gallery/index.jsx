@@ -5,21 +5,24 @@ import {
   Row,
   Col,
   Card,
-  CardBody,
   Button,
   Spinner,
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
   Alert
 } from 'reactstrap'
 import { setLoading, setImages, setSelectedImage, removeImage } from '../../state/redux/gallery/slice'
+import ImageCard from '../../components/ImageCard'
+import AddImageModal from '../../components/AddImageModal'
+import DeleteImageModal from '../../components/DeleteImageModal'
+import PreviewImageModal from '../../components/PreviewImageModal'
 
 const Gallery = () => {
   const dispatch = useDispatch()
   const { images, loading, selectedImage } = useSelector((state) => state.gallery)
-  const [modalOpen, setModalOpen] = useState(false)
+  const [previewModalOpen, setPreviewModalOpen] = useState(false)
+  const [addModalOpen, setAddModalOpen] = useState(false)
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [imageToDelete, setImageToDelete] = useState(null)
+
   const [alertMessage, setAlertMessage] = useState('')
   const [showAlert, setShowAlert] = useState(false)
   const [alertColor, setAlertColor] = useState('danger')
@@ -38,7 +41,6 @@ const Gallery = () => {
     }, 2000)
   }
 
-  // Check if we're running in Electron
   const isElectron = () => {
     return window && window.api && typeof window.api.getImages === 'function'
   }
@@ -47,15 +49,10 @@ const Gallery = () => {
     dispatch(setLoading(true))
     try {
       if (isElectron()) {
-        // Running in Electron, use the API
         const loadedImages = await window.api.getImages()
         dispatch(setImages(loadedImages))
         showTimedAlert('Images loaded successfully', 'success')
-        console.log('images', images)
-
       } else {
-        // Not running in Electron or API not available
-        console.log('images', images)
         showTimedAlert('Development mode: No images available', 'warning')
       }
     } catch (error) {
@@ -68,72 +65,44 @@ const Gallery = () => {
 
   const handleImageClick = (image) => {
     dispatch(setSelectedImage(image))
-    setModalOpen(true)
+    setPreviewModalOpen(true)
   }
-
-  const handleDeleteImage = async () => {
-    if (!selectedImage) return
-    
-    dispatch(setLoading(true))
-    try {
-      if (isElectron()) {
-        // Call the exposed Electron API
-        const result = await window.api.deleteImage(selectedImage.id)
-        
-        if (result.error) {
-          showTimedAlert(`Error: ${result.error}`)
-        } else {
-          dispatch(removeImage(selectedImage.id))
-          setModalOpen(false)
-          showTimedAlert('Image deleted successfully', 'success')
-        }
-      } else {
-        // Development mode
-        dispatch(removeImage(selectedImage.id))
-        setModalOpen(false)
-        showTimedAlert('Development mode: Image would be deleted', 'warning')
+  
+  const handleClosePreviewModal = () => {
+    setPreviewModalOpen(false)
+  }
+  
+  const handleAddModal = () => {
+    setAddModalOpen(true)
+  }
+  
+  const handleDeleteClick = (image) => {
+    setImageToDelete(image)
+    setDeleteModalOpen(true)
+  }
+  
+  const handleCloseDeleteModal = async (wasImageDeleted) => {
+    if (wasImageDeleted) {
+      dispatch(removeImage(imageToDelete.id))
+      showTimedAlert('Image deleted successfully', 'success')
+      
+      if (selectedImage && selectedImage.id === imageToDelete.id) {
+        setPreviewModalOpen(false)
       }
-    } catch (error) {
-      console.error('Error deleting image:', error)
-      showTimedAlert('Failed to delete image')
-    } finally {
-      dispatch(setLoading(false))
     }
+    setDeleteModalOpen(false)
+    setImageToDelete(null)
   }
 
-  const handleAddImage = async () => {
-    dispatch(setLoading(true))
-    try {
-      if (isElectron()) {
-        // Open file dialog
-        const dialogResult = await window.api.openFileDialog()
-        
-        if (dialogResult.canceled || dialogResult.error) {
-          dispatch(setLoading(false))
-          return
-        }
-        
-        // Upload the selected image
-        const newImage = await window.api.uploadImage(dialogResult.filePath)
-        
-        if (newImage.error) {
-          showTimedAlert(`Error: ${newImage.error}`)
-        } else {
-          await loadImages() // Reload images to get the latest list
-          showTimedAlert('Image uploaded successfully', 'success')
-        }
-      } else {
-        // Development mode
-        showTimedAlert('Development mode: Cannot add images', 'warning')
-      }
-    } catch (error) {
-      console.error('Error adding image:', error)
-      showTimedAlert('Failed to add image')
-    } finally {
-      dispatch(setLoading(false))
+  const handleCloseAddModal = async (wasImageAdded) => {
+    if (wasImageAdded) {
+      const loadedImages = await window.api.getImages()
+      dispatch(setImages(loadedImages))
+      showTimedAlert('Image added successfully', 'success')
     }
+    setAddModalOpen(false)
   }
-
+  
   return (
     <Container fluid className="py-4">
       <Alert
@@ -141,6 +110,7 @@ const Gallery = () => {
         isOpen={showAlert}
         toggle={() => setShowAlert(false)}
         className="mb-3"
+        timeout={2000}
       >
         {alertMessage}
       </Alert>
@@ -152,7 +122,7 @@ const Gallery = () => {
         <Col md={4} className="text-end d-flex justify-content-end">
           <Button
             color="primary"
-            onClick={handleAddImage}
+            onClick={handleAddModal}
             className="btn-color border-0"
           >
             Add Image
@@ -180,27 +150,22 @@ const Gallery = () => {
               <Col md={3} key={image.id} className="mb-4">
                 <Card 
                   className="container-bg border-0 h-100"
-                  onClick={() => handleImageClick(image)}
-                  style={{ cursor: 'pointer' }}
                 >
-                  <img  src={image.path}
+                  <ImageCard 
+                    image={image} 
+                    onImageClick={handleImageClick}
+                    onDeleteClick={handleDeleteClick}
                   />
-                  <CardBody className="text-white">
-                    <h5>{image.name}</h5>
-                    <p className="mb-0 text-muted">
-                      {new Date(image.modified).toLocaleDateString()}
-                    </p>
-                  </CardBody>
                 </Card>
               </Col>
             ))
           ) : (
             <Col>
               <Card className="container-bg border-0">
-                <CardBody className="text-center py-5 text-white">
+                <div className="text-center py-5 text-white">
                   <h4>No images found</h4>
                   <p>Use the Add Image button to add images to your gallery</p>
-                </CardBody>
+                </div>
               </Card>
             </Col>
           )}
@@ -208,33 +173,24 @@ const Gallery = () => {
       )}
       
       {/* Image Preview Modal */}
-      <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} size="lg" className="modal-dark">
-        <ModalHeader toggle={() => setModalOpen(false)} className="container-bg text-white">
-          {selectedImage?.name}
-        </ModalHeader>
-        <ModalBody className="container-bg text-white">
-          {selectedImage && (
-            <div className="text-center">
-              <img 
-                src={isElectron() ? `file://${selectedImage.path}` : selectedImage.path}
-                alt={selectedImage.name}
-                style={{ 
-                  maxWidth: '100%',
-                  maxHeight: '60vh'
-                }}
-              />
-            </div>
-          )}
-        </ModalBody>
-        <ModalFooter className="container-bg">
-          <Button color="danger" onClick={handleDeleteImage}>
-            Delete
-          </Button>
-          <Button color="secondary" onClick={() => setModalOpen(false)}>
-            Close
-          </Button>
-        </ModalFooter>
-      </Modal>
+      <PreviewImageModal
+        isOpen={previewModalOpen}
+        toggle={handleClosePreviewModal}
+        image={selectedImage}
+      />
+      
+      {/* Add Image Modal */}
+      <AddImageModal 
+        isOpen={addModalOpen} 
+        toggle={handleCloseAddModal} 
+      />
+      
+      {/* Delete Image Modal */}
+      <DeleteImageModal
+        isOpen={deleteModalOpen}
+        toggle={handleCloseDeleteModal}
+        image={imageToDelete}
+      />
     </Container>
   )
 }
