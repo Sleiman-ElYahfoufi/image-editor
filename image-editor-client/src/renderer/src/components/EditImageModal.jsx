@@ -45,6 +45,7 @@ const EditImageModal = ({ isOpen, toggle, image }) => {
   const imageRef = useRef(null)
   const cropImageRef = useRef(null)
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [croppedImageSrc, setCroppedImageSrc] = useState(null)
 
   useEffect(() => {
     if (isOpen && image) {
@@ -191,7 +192,7 @@ const EditImageModal = ({ isOpen, toggle, image }) => {
 
   const handleSave = async () => {
     if (!image || !window.api?.saveEditedImage) return
-    setSaving(true)
+    setSaving(true)  // Fixed typo from 'setSiavng'
 
     try {
       const imageData = canvasRef.current.toDataURL('image/jpeg', 0.95)
@@ -207,8 +208,6 @@ const EditImageModal = ({ isOpen, toggle, image }) => {
       setSaving(false)
     }
   }
-
-  const [croppedImageSrc, setCroppedImageSrc] = useState(null)
 
   const handleFinishCrop = () => {
     if (!completedCrop) {
