@@ -19,7 +19,7 @@ const AppNavbar = () => {
       <Nav className="ms-auto me-3" navbar>
         <NavItem>
           <Button 
-            color="danger" 
+            className='btn-color'
             size="sm" 
             onClick={handleLogout}
           >

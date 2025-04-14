@@ -14,6 +14,7 @@ import ImageCard from '../../components/ImageCard'
 import AddImageModal from '../../components/AddImageModal'
 import DeleteImageModal from '../../components/DeleteImageModal'
 import PreviewImageModal from '../../components/PreviewImageModal'
+import EditImageModal from '../../components/EditImageModal'
 
 const Gallery = () => {
   const dispatch = useDispatch()
@@ -21,7 +22,9 @@ const Gallery = () => {
   const [previewModalOpen, setPreviewModalOpen] = useState(false)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
   const [imageToDelete, setImageToDelete] = useState(null)
+  const [imageToEdit, setImageToEdit] = useState(null)
 
   const [alertMessage, setAlertMessage] = useState('')
   const [showAlert, setShowAlert] = useState(false)
@@ -49,8 +52,17 @@ const Gallery = () => {
     dispatch(setLoading(true))
     try {
       if (isElectron()) {
+        // Get images from Electron
         const loadedImages = await window.api.getImages()
-        dispatch(setImages(loadedImages))
+        
+        // Add cache-busting timestamp to each image path
+        const timestamp = Date.now()
+        const refreshedImages = loadedImages.map(img => ({
+          ...img,
+          path: `${img.path}${img.path.includes('?') ? '&' : '?'}t=${timestamp}`
+        }))
+        
+        dispatch(setImages(refreshedImages))
         showTimedAlert('Images loaded successfully', 'success')
       } else {
         showTimedAlert('Development mode: No images available', 'warning')
@@ -81,6 +93,11 @@ const Gallery = () => {
     setDeleteModalOpen(true)
   }
   
+  const handleEditClick = (image) => {
+    setImageToEdit(image)
+    setEditModalOpen(true)
+  }
+  
   const handleCloseDeleteModal = async (wasImageDeleted) => {
     if (wasImageDeleted) {
       dispatch(removeImage(imageToDelete.id))
@@ -96,11 +113,39 @@ const Gallery = () => {
 
   const handleCloseAddModal = async (wasImageAdded) => {
     if (wasImageAdded) {
-      const loadedImages = await window.api.getImages()
-      dispatch(setImages(loadedImages))
+      await loadImages()
       showTimedAlert('Image added successfully', 'success')
     }
     setAddModalOpen(false)
+  }
+  
+  const handleCloseEditModal = async (wasImageEdited) => {
+    if (wasImageEdited) {
+      // Force a full reload of all images
+      const loadedImages = await window.api.getImages()
+      
+      // Add a cache-busting timestamp to each image path
+      const timestamp = Date.now()
+      const refreshedImages = loadedImages.map(img => ({
+        ...img,
+        path: `${img.path}?t=${timestamp}`
+      }))
+      
+      // Update the redux store
+      dispatch(setImages(refreshedImages))
+      
+      // If we're previewing the edited image, update it
+      if (selectedImage && selectedImage.id === imageToEdit.id) {
+        const updatedImage = refreshedImages.find(img => img.id === imageToEdit.id)
+        if (updatedImage) {
+          dispatch(setSelectedImage(updatedImage))
+        }
+      }
+      
+      showTimedAlert('Image edited successfully', 'success')
+    }
+    setEditModalOpen(false)
+    setImageToEdit(null)
   }
   
   return (
@@ -155,6 +200,7 @@ const Gallery = () => {
                     image={image} 
                     onImageClick={handleImageClick}
                     onDeleteClick={handleDeleteClick}
+                    onEditClick={handleEditClick}
                   />
                 </Card>
               </Col>
@@ -190,6 +236,13 @@ const Gallery = () => {
         isOpen={deleteModalOpen}
         toggle={handleCloseDeleteModal}
         image={imageToDelete}
+      />
+      
+      {/* Edit Image Modal */}
+      <EditImageModal
+        isOpen={editModalOpen}
+        toggle={handleCloseEditModal}
+        image={imageToEdit}
       />
     </Container>
   )

@@ -1,9 +1,16 @@
 import React from "react";
-import {CardImg, Button } from "reactstrap";
+import { CardImg, Button } from "reactstrap";
 import "../styles/ImageCard.css"; 
-const ImageCard = ({ image, onImageClick, onDeleteClick }) => {
+
+const ImageCard = ({ image, onImageClick, onDeleteClick, onEditClick }) => {
   const handleDeleteClick = (e) => {
+    e.stopPropagation();
     onDeleteClick(image);
+  };
+
+  const handleEditClick = (e) => {
+    e.stopPropagation();
+    onEditClick(image);
   };
 
   return (
@@ -16,16 +23,25 @@ const ImageCard = ({ image, onImageClick, onDeleteClick }) => {
           className="card-image"
           onClick={() => onImageClick(image)}
         />
-        <Button 
-          color="danger" 
-          size="sm"
-          className="delete-button"
-          onClick={handleDeleteClick}
-        >
-          Delete
-        </Button>
+        <div className="image-buttons">
+          <Button 
+            color="primary" 
+            size="sm"
+            className="edit-button me-2"
+            onClick={handleEditClick}
+          >
+            Edit
+          </Button>
+          <Button 
+            color="danger" 
+            size="sm"
+            className="delete-button"
+            onClick={handleDeleteClick}
+          >
+            Delete
+          </Button>
+        </div>
       </div>
-    
     </div>
   );
 };

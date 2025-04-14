@@ -210,7 +210,47 @@ app.whenReady().then(() => {
       return { error: error.message }
     }
   })
+ // Updated saveEditedImage handler for main.js
 
+// Save edited image as a new file
+ipcMain.handle('save-edited-image', async (event, params) => {
+  try {
+    // Find the original image metadata
+    const originalImage = imageMetadata.find(img => img.id === params.id);
+    if (!originalImage) return { error: 'Image not found' };
+    
+    // Extract base64 data from the data URL
+    const base64Data = params.data.replace(/^data:image\/\w+;base64,/, '');
+    const buffer = Buffer.from(base64Data, 'base64');
+    
+    // Create new filename for the edited image
+    const originalName = path.basename(originalImage.name, path.extname(originalImage.name));
+    const fileExtension = path.extname(originalImage.name) || '.jpg';
+    const newFilename = `${originalName}_edited_${Date.now()}${fileExtension}`;
+    const newImagePath = path.join(imagesPath, newFilename);
+    
+    // Save the edited image
+    fs.writeFileSync(newImagePath, buffer);
+    
+    // Create and save metadata for the new image
+    const newImage = {
+      id: uuidv4(),
+      name: newFilename,
+      path: newImagePath,
+      size: buffer.length,
+      modified: new Date().toISOString(),
+      originalId: originalImage.id 
+    };
+    
+    imageMetadata.push(newImage);
+    saveMetadata();
+    
+    return { success: true, image: newImage };
+  } catch (error) {
+    console.error('Error saving edited image:', error);
+    return { error: error.message };
+  }
+});
   createWindow()
 
   app.on('activate', function () {
