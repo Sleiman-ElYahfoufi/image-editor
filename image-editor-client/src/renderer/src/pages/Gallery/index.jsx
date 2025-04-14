@@ -9,20 +9,25 @@ import {
   Spinner,
   Alert
 } from 'reactstrap'
-import { setLoading, setImages, setSelectedImage, removeImage } from '../../state/redux/gallery/slice'
+import { setLoading, setImages, setSelectedImage} from '../../state/redux/gallery/slice'
 import ImageCard from '../../components/ImageCard'
 import AddImageModal from '../../components/AddImageModal'
 import DeleteImageModal from '../../components/DeleteImageModal'
 import PreviewImageModal from '../../components/PreviewImageModal'
+import EditImageModal from '../../components/EditImageModal'
 
 const Gallery = () => {
   const dispatch = useDispatch()
   const { images, loading, selectedImage } = useSelector((state) => state.gallery)
+  
+  // Modal states
   const [previewModalOpen, setPreviewModalOpen] = useState(false)
   const [addModalOpen, setAddModalOpen] = useState(false)
   const [deleteModalOpen, setDeleteModalOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
   const [imageToDelete, setImageToDelete] = useState(null)
-
+  const [imageToEdit, setImageToEdit] = useState(null)
+  
   const [alertMessage, setAlertMessage] = useState('')
   const [showAlert, setShowAlert] = useState(false)
   const [alertColor, setAlertColor] = useState('danger')
@@ -35,22 +40,28 @@ const Gallery = () => {
     setAlertMessage(message)
     setAlertColor(color)
     setShowAlert(true)
-
-    setTimeout(() => {
-      setShowAlert(false)
-    }, 2000)
+    setTimeout(() => setShowAlert(false), 2000)
   }
 
-  const isElectron = () => {
-    return window && window.api && typeof window.api.getImages === 'function'
-  }
+  const isElectron = () => window && window.api && typeof window.api.getImages === 'function'
 
   const loadImages = async () => {
     dispatch(setLoading(true))
     try {
       if (isElectron()) {
         const loadedImages = await window.api.getImages()
-        dispatch(setImages(loadedImages))
+        const timestamp = Date.now()
+        
+        let refreshedImages = loadedImages.map(img => ({
+          ...img,
+          path: `${img.path}?t=${timestamp}`
+        }))
+        
+        refreshedImages.sort((a, b) => {
+          return new Date(a.modified) - new Date(b.modified)
+        })
+        
+        dispatch(setImages(refreshedImages))
         showTimedAlert('Images loaded successfully', 'success')
       } else {
         showTimedAlert('Development mode: No images available', 'warning')
@@ -68,27 +79,24 @@ const Gallery = () => {
     setPreviewModalOpen(true)
   }
   
-  const handleClosePreviewModal = () => {
-    setPreviewModalOpen(false)
-  }
-  
-  const handleAddModal = () => {
-    setAddModalOpen(true)
-  }
+  const handleAddClick = () => setAddModalOpen(true)
   
   const handleDeleteClick = (image) => {
     setImageToDelete(image)
     setDeleteModalOpen(true)
   }
   
+  const handleEditClick = (image) => {
+    setImageToEdit(image)
+    setEditModalOpen(true)
+  }
+  
+  const handleClosePreviewModal = () => setPreviewModalOpen(false)
+  
   const handleCloseDeleteModal = async (wasImageDeleted) => {
     if (wasImageDeleted) {
-      dispatch(removeImage(imageToDelete.id))
+      await loadImages()
       showTimedAlert('Image deleted successfully', 'success')
-      
-      if (selectedImage && selectedImage.id === imageToDelete.id) {
-        setPreviewModalOpen(false)
-      }
     }
     setDeleteModalOpen(false)
     setImageToDelete(null)
@@ -96,11 +104,19 @@ const Gallery = () => {
 
   const handleCloseAddModal = async (wasImageAdded) => {
     if (wasImageAdded) {
-      const loadedImages = await window.api.getImages()
-      dispatch(setImages(loadedImages))
+      await loadImages()
       showTimedAlert('Image added successfully', 'success')
     }
     setAddModalOpen(false)
+  }
+  
+  const handleCloseEditModal = async (wasImageEdited) => {
+    if (wasImageEdited) {
+      await loadImages()
+      showTimedAlert('Edited image saved successfully', 'success')
+    }
+    setEditModalOpen(false)
+    setImageToEdit(null)
   }
   
   return (
@@ -110,11 +126,11 @@ const Gallery = () => {
         isOpen={showAlert}
         toggle={() => setShowAlert(false)}
         className="mb-3"
-        timeout={2000}
       >
         {alertMessage}
       </Alert>
       
+      {/* Header with buttons */}
       <Row className="mb-4">
         <Col>
           <h2 className="text-white">My Gallery</h2>
@@ -122,7 +138,7 @@ const Gallery = () => {
         <Col md={4} className="text-end d-flex justify-content-end">
           <Button
             color="primary"
-            onClick={handleAddModal}
+            onClick={handleAddClick}
             className="btn-color border-0"
           >
             Add Image
@@ -138,6 +154,7 @@ const Gallery = () => {
         </Col>
       </Row>
       
+      {/* Gallery content */}
       {loading ? (
         <div className="text-center py-5">
           <Spinner color="primary" />
@@ -148,13 +165,12 @@ const Gallery = () => {
           {images.length > 0 ? (
             images.map((image) => (
               <Col md={3} key={image.id} className="mb-4">
-                <Card 
-                  className="container-bg border-0 h-100"
-                >
+                <Card className="container-bg border-0 h-100">
                   <ImageCard 
                     image={image} 
                     onImageClick={handleImageClick}
                     onDeleteClick={handleDeleteClick}
+                    onEditClick={handleEditClick}
                   />
                 </Card>
               </Col>
@@ -172,24 +188,28 @@ const Gallery = () => {
         </Row>
       )}
       
-      {/* Image Preview Modal */}
+      {/* Modals */}
       <PreviewImageModal
         isOpen={previewModalOpen}
         toggle={handleClosePreviewModal}
         image={selectedImage}
       />
       
-      {/* Add Image Modal */}
       <AddImageModal 
         isOpen={addModalOpen} 
         toggle={handleCloseAddModal} 
       />
       
-      {/* Delete Image Modal */}
       <DeleteImageModal
         isOpen={deleteModalOpen}
         toggle={handleCloseDeleteModal}
         image={imageToDelete}
+      />
+      
+      <EditImageModal
+        isOpen={editModalOpen}
+        toggle={handleCloseEditModal}
+        image={imageToEdit}
       />
     </Container>
   )

@@ -7,7 +7,9 @@ const api = {
   getImages: () => ipcRenderer.invoke('get-images'),
   uploadImage: (filePath) => ipcRenderer.invoke('upload-image', filePath),
   deleteImage: (imageId) => ipcRenderer.invoke('delete-image', imageId),
-  openFileDialog: () => ipcRenderer.invoke('open-file-dialog')
+  openFileDialog: () => ipcRenderer.invoke('open-file-dialog'),
+  saveEditedImage: (params) => ipcRenderer.invoke('save-edited-image', params)
+
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
