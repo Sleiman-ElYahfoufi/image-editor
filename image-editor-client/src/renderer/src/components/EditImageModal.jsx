@@ -192,7 +192,7 @@ const EditImageModal = ({ isOpen, toggle, image }) => {
 
   const handleSave = async () => {
     if (!image || !window.api?.saveEditedImage) return
-    setSaving(true)  // Fixed typo from 'setSiavng'
+    setSaving(true)  
 
     try {
       const imageData = canvasRef.current.toDataURL('image/jpeg', 0.95)
