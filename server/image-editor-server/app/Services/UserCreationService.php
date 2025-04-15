@@ -11,6 +11,7 @@ class UserCreationService
     {
         try {
             $user = User::create([
+                'username' => $userData['username'],
                 'email' => $userData['email'],
                 'password' => Hash::make($userData['password']),
             ]);
@@ -21,7 +22,8 @@ class UserCreationService
             
         } catch (\Exception $e) {            
             return [
-                'error' => $e->getMessage()];
+                'error' => $e->getMessage(),
+                "stuff" => $userData];
         }
     }
 }

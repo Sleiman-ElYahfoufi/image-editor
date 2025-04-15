@@ -10,7 +10,7 @@ class AuthService
     {
         try {
             $credentials = [
-                "email" => $userData["email"],
+                "username" => $userData["username"],
                 "password" => $userData["password"]
             ];
             if (!Auth::attempt($credentials)) {

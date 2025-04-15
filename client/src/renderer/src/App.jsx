@@ -2,6 +2,7 @@ import { Route, Routes, Navigate } from 'react-router-dom'
 import Auth from './pages/Auth'
 import Gallery from './pages/Gallery'
 import ProtectedRoute from './components/ProtectedRoute'
+import Chat from './pages/Chat'
 
 const App = () => {
   const isAuthenticated = localStorage.getItem('token') !== null;
@@ -21,7 +22,14 @@ const App = () => {
           </ProtectedRoute>
         } 
       />
-      
+       <Route 
+        path="/chat" 
+        element={
+          <ProtectedRoute>
+            <Chat />
+          </ProtectedRoute>
+        } 
+      />
       <Route 
         path="*" 
         element={<Navigate to={isAuthenticated ? "/gallery" : "/"} replace />} 
