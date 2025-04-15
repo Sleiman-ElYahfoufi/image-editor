@@ -35,7 +35,7 @@ async function getMessages(limit = 50) {
     // Join with users table to get usernames
     const [rows] = await connection.execute(`
       SELECT m.id, m.user_id as userId, u.username, m.message as text, m.created_at as timestamp
-      FROM messages m
+      FROM chat_messages m
       JOIN users u ON m.user_id = u.id
       ORDER BY m.created_at DESC
       LIMIT ?
@@ -57,7 +57,7 @@ async function saveMessage(userId, message) {
     const connection = await pool.getConnection();
     
     const [result] = await connection.execute(`
-      INSERT INTO messages (user_id, message, created_at, updated_at)
+      INSERT INTO chat_messages (user_id, message, created_at, updated_at)
       VALUES (?, ?, NOW(), NOW())
     `, [userId, message]);
     

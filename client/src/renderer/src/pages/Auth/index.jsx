@@ -106,9 +106,12 @@ const Auth = () => {
       })
 
       if (response.error) {
-        showTimedAlert(response.error)
+        showTimedAlert(response.message)
+        console.log("error",response)
+        dispatch(setLoading(false))
       } else {
         if (response.success === false) {
+          console.log("response",response)
           showTimedAlert(Object.values(response.payload)[0][0])
           dispatch(setLoading(false))
         } else {
