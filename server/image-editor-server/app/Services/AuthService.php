@@ -15,8 +15,9 @@ class AuthService
             ];
             if (!Auth::attempt($credentials)) {
                 return [
-                    "success" => false,
-                    "error" => "Unauthorized"
+                    "message" => ["Invalid Credentials"],
+                    "success" => false
+
                 ];
             }
 
@@ -30,6 +31,7 @@ class AuthService
             ];
         } catch (\Exception $e) {
             return [
+                'success' => false,
                 'error' => $e->getMessage()
             ];
         }

@@ -15,8 +15,8 @@ class AuthController extends Controller
 
 
         $response = AuthService::loginUser($request->validated());
-        if (isset($response['error'])) {
-            return $this->errorResponse($response, 401);
+        if ($response['success']==false) {
+            return $this->errorResponse($response, 202);
         }
 
         return $this->successResponse($response, 201);
@@ -27,7 +27,7 @@ class AuthController extends Controller
 
         $response = UserCreationService::createUser($request->validated());
 
-        if (isset($response['error'])) {
+        if ($response['success']==false) {
             return $this->errorResponse($response, 401);
         }
 
