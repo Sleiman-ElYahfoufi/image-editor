@@ -116,6 +116,7 @@ const Auth = () => {
         } else {
           if (isLogin) {
             localStorage.setItem('token', response.payload.user.token)
+            localStorage.setItem('userId', response.payload.user.id)          
             await trackLoginDetails(response.payload.user.id)
 
             showTimedAlert('Authentication successful!', 'success')

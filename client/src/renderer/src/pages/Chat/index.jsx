@@ -12,18 +12,12 @@ const Chat = () => {
   const messagesEndRef = useRef(null)
   
   const getUserInfo = () => {
-    const token = localStorage.getItem('token')
-    if (!token) return { userId: null, username: 'Anonymous' }
+    const userId = localStorage.getItem('userId')
     
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]))
-      return { 
-        userId: String(payload.sub),
-        username: payload.username || 'User'
-      }
-    } catch (e) {
-      console.error('Error parsing token:', e)
-      return { userId: null, username: 'Anonymous' }
+    if (!userId) return { userId: null, username: 'Anonymous' }
+    
+    return { 
+      userId: String(userId),
     }
   }
   

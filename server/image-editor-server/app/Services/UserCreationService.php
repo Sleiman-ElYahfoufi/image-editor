@@ -17,13 +17,15 @@ class UserCreationService
             ]);
             
             return [
+                "success" => true,
                 'user' => $user,
             ];
             
         } catch (\Exception $e) {            
             return [
+                'success' => false,
                 'error' => $e->getMessage(),
-                "stuff" => $userData];
+            ];
         }
     }
 }
