@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests;
 
-use App\Traits\ResponseTrait;
 use Illuminate\Foundation\Http\FormRequest;
+use App\Traits\ResponseTrait;
 
-class LoginAuthRequest extends FormRequest
+class CreateAuthRequest extends FormRequest
 {
     use ResponseTrait;
 
@@ -19,7 +19,9 @@ class LoginAuthRequest extends FormRequest
      */
     public function rules(): array{
         return [
-            "email" => "required|email",
+            "email" => "required|email|unique:users,email",
+            "username" => "required|string|unique:users,username",
+
             "password" => "required|min:8",
         ];
     }
@@ -27,13 +29,16 @@ class LoginAuthRequest extends FormRequest
     public function messages():array{
         return [
             "email.required" => "Your email is required!",
+            "username.required" => "Your username is required!",
             "password.required" => "Password is needed!",
         ];
     }
 
     public function attributes(): array{
         return [
-            "email" => "Email Address"
+            "email" => "Email Address",
+            "username" => "Username"
         ];
     }
+
 }

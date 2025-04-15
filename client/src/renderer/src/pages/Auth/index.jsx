@@ -28,6 +28,7 @@ const Auth = () => {
   const dispatch = useDispatch()
   const [isLogin, setIsLogin] = useState(true)
   const [formData, handleFormChange] = useForm({
+    username: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -91,10 +92,15 @@ const Auth = () => {
     }
 
     const { confirmPassword, ...submitData } = formData
+    
+    // For login, we only need username and password
+    const loginData = isLogin ? 
+      { username: submitData.username, password: submitData.password } : 
+      submitData
 
     try {
       const response = await request({
-        body: submitData,
+        body: loginData,
         method: 'POST',
         route: isLogin ? 'guest/login' : 'guest/signup'
       })
@@ -113,9 +119,9 @@ const Auth = () => {
             showTimedAlert('Authentication successful!', 'success')
             dispatch(setLoading(false))
 
-             navigate("/gallery");
+            navigate("/gallery");
           } else {
-            showTimedAlert('Authentication successful!', 'success')
+            showTimedAlert('Account created successfully!', 'success')
             dispatch(setLoading(false))
 
             setIsLogin(true)
@@ -171,21 +177,40 @@ const Auth = () => {
 
               <Form onSubmit={handleSubmit}>
                 <FormGroup className="mb-3">
-                  <Label for="email" className="text-white">
-                    Email address
+                  <Label for="username" className="text-white">
+                    Username
                   </Label>
                   <Input
-                    type="email"
-                    id="email"
-                    name="email"
-                    placeholder="user@example.com"
-                    value={formData.email}
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Enter your username"
+                    value={formData.username}
                     onChange={handleFormChange}
                     required
                     className="input-color border-0 text-white"
                     disabled={loading}
                   />
                 </FormGroup>
+
+                {!isLogin && (
+                  <FormGroup className="mb-3">
+                    <Label for="email" className="text-white">
+                      Email address
+                    </Label>
+                    <Input
+                      type="email"
+                      id="email"
+                      name="email"
+                      placeholder="user@example.com"
+                      value={formData.email}
+                      onChange={handleFormChange}
+                      required
+                      className="input-color border-0 text-white"
+                      disabled={loading}
+                    />
+                  </FormGroup>
+                )}
 
                 <FormGroup className="mb-3">
                   <Label for="password" className="text-white">
