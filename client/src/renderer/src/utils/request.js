@@ -1,6 +1,6 @@
 import axios from "axios";
 
-axios.defaults.baseURL = "http://localhost:8000/api/v0.1/";
+axios.defaults.baseURL = "http://15.237.119.184:8000/api/v0.1/";
 
 export const request = async ({ method, route, body, auth = false }) => {
   const headers = {

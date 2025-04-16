@@ -28,7 +28,7 @@ const Chat = () => {
   }, [])
   
   useEffect(() => {
-    const socketUrl = 'http://localhost:3001'
+    const socketUrl = 'http://15.237.119.184:3001'
     const newSocket = io(socketUrl)
     setSocket(newSocket)
     

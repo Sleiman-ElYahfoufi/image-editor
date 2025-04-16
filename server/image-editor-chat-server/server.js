@@ -10,29 +10,29 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Allow all origins in development
+    origin: "*", 
     methods: ["GET", "POST"],
   },
 });
 
-// MySQL Database Connection
-// Use the same credentials as your Laravel app's .env
+
+
 const dbConfig = {
   host: "localhost",
-  user: "root", // Replace with your MySQL username
-  password: "", // Replace with your MySQL password
-  database: "image_editor_db", // Replace with your database name
+  user: "root", 
+  password: "", 
+  database: "image_editor_db", 
 };
 
-// Create the connection pool
+
 const pool = mysql.createPool(dbConfig);
 
-// Function to get messages from the database
+
 async function getMessages(limit = 50) {
   try {
     const connection = await pool.getConnection();
 
-    // Join with users table to get usernames
+    
     const [rows] = await connection.execute(
       `
       SELECT m.id, m.user_id as userId, u.username, m.message as text, m.created_at as timestamp
@@ -46,7 +46,7 @@ async function getMessages(limit = 50) {
 
     connection.release();
 
-    // Reverse to get chronological order
+    
     return rows.reverse();
   } catch (error) {
     console.error("Database error:", error);
@@ -54,7 +54,7 @@ async function getMessages(limit = 50) {
   }
 }
 
-// Function to save a message to the database
+
 async function saveMessage(userId, message) {
   try {
     const connection = await pool.getConnection();
@@ -76,7 +76,7 @@ async function saveMessage(userId, message) {
   }
 }
 
-// Function to get username from user ID
+
 async function getUsername(userId) {
   try {
     const connection = await pool.getConnection();
@@ -97,25 +97,25 @@ async function getUsername(userId) {
   }
 }
 
-// Socket.IO Connection
+
 io.on("connection", async (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  // Send chat history to newly connected user
+  
   const messages = await getMessages();
   socket.emit("chat_history", messages);
 
-  // Handle chat messages
+  
   socket.on("send_message", async (messageData) => {
     try {
-      // Save message to database
+      
       const messageId = await saveMessage(messageData.userId, messageData.text);
 
       if (messageId) {
-        // Get user's username
+        
         const username = await getUsername(messageData.userId);
 
-        // Create full message object
+        
         const fullMessage = {
           id: messageId,
           userId: messageData.userId,
@@ -124,7 +124,7 @@ io.on("connection", async (socket) => {
           timestamp: new Date().toISOString(),
         };
 
-        // Broadcast message to all connected clients
+        
         io.emit("new_message", fullMessage);
       }
     } catch (error) {
@@ -132,13 +132,13 @@ io.on("connection", async (socket) => {
     }
   });
 
-  // Handle disconnection
+  
   socket.on("disconnect", () => {
     console.log(`User disconnected: ${socket.id}`);
   });
 });
 
-// Define a simple endpoint to verify the server is running
+
 app.get("/", (req, res) => {
   res.send("Chat server is running");
 });
