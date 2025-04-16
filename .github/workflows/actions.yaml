@@ -13,6 +13,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Debug - List repository structure
+        run: |
+          echo "Root directory contents:"
+          ls -la
+          echo "\nServer directory contents:"
+          ls -la server/
+          echo "\nRecursive find for dockerfile:"
+          find . -name "dockerfile" -o -name "Dockerfile"
+
       - name: Setup .env file for Laravel
         run: |
           cd server/image-editor-server
@@ -26,7 +35,16 @@ jobs:
           password: ${{ secrets.DOCKER_KEY }}
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/editorserver:latest .
+        run: |
+          # Try to find and use the dockerfile wherever it is
+          DOCKERFILE_PATH=$(find . -name "dockerfile" -o -name "Dockerfile" | head -1)
+          if [ -z "$DOCKERFILE_PATH" ]; then
+            echo "No Dockerfile found in the repository!"
+            exit 1
+          fi
+          
+          echo "Found Dockerfile at: $DOCKERFILE_PATH"
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/editorserver:latest -f "$DOCKERFILE_PATH" .
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/editorserver:latest
@@ -46,13 +64,37 @@ jobs:
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
           script: |
+            # Pull down containers
             docker-compose down
             docker rmi ${{ secrets.DOCKER_USERNAME }}/editorserver:latest
+            
+            # Bring up containers
             docker-compose up -d
             
-            # Wait for the database container to be fully ready
+            # Wait for database to be ready
             echo "Waiting for database to be ready..."
             sleep 20
             
-            # Run migrations inside the laravel container
-            docker-compose exec -T ubuntu_server_1 php artisan migrate --force
+            # Get the actual container name for the server
+            SERVER_CONTAINER=$(docker ps --filter "name=server" --format "{{.Names}}")
+            echo "Detected server container: $SERVER_CONTAINER"
+            
+            # Try to run migrations with the detected container name
+            if [ ! -z "$SERVER_CONTAINER" ]; then
+              echo "Running migrations on container: $SERVER_CONTAINER"
+              docker exec -T $SERVER_CONTAINER php artisan migrate --force
+            else
+              echo "Could not find server container. Trying alternative methods..."
+              
+              # Alternative 1: Try using the service name directly
+              echo "Trying with service name..."
+              docker-compose exec -T server php artisan migrate --force || true
+              
+              # Alternative 2: Try using known container name
+              echo "Trying with ubuntu_server_1..."
+              docker exec -T ubuntu_server_1 php artisan migrate --force || true
+              
+              # Alternative 3: Just list all containers to help debug
+              echo "Listing all running containers:"
+              docker ps
+            fi
