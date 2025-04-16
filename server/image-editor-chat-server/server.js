@@ -10,31 +10,26 @@ app.use(cors());
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", 
+    origin: "*",
     methods: ["GET", "POST"],
     allowedHeaders: ["*"],
-    credentials: true
+    credentials: true,
   },
 });
 
-
-
 const dbConfig = {
   host: "localhost",
-  user: "root", 
-  password: "", 
-  database: "image_editor_db", 
+  user: "root",
+  password: "",
+  database: "image_editor_db",
 };
 
-
 const pool = mysql.createPool(dbConfig);
-
 
 async function getMessages(limit = 50) {
   try {
     const connection = await pool.getConnection();
 
-    
     const [rows] = await connection.execute(
       `
       SELECT m.id, m.user_id as userId, u.username, m.message as text, m.created_at as timestamp
@@ -48,14 +43,12 @@ async function getMessages(limit = 50) {
 
     connection.release();
 
-    
     return rows.reverse();
   } catch (error) {
     console.error("Database error:", error);
     return [];
   }
 }
-
 
 async function saveMessage(userId, message) {
   try {
@@ -78,7 +71,6 @@ async function saveMessage(userId, message) {
   }
 }
 
-
 async function getUsername(userId) {
   try {
     const connection = await pool.getConnection();
@@ -99,25 +91,19 @@ async function getUsername(userId) {
   }
 }
 
-
 io.on("connection", async (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  
   const messages = await getMessages();
   socket.emit("chat_history", messages);
 
-  
   socket.on("send_message", async (messageData) => {
     try {
-      
       const messageId = await saveMessage(messageData.userId, messageData.text);
 
       if (messageId) {
-        
         const username = await getUsername(messageData.userId);
 
-        
         const fullMessage = {
           id: messageId,
           userId: messageData.userId,
@@ -126,7 +112,6 @@ io.on("connection", async (socket) => {
           timestamp: new Date().toISOString(),
         };
 
-        
         io.emit("new_message", fullMessage);
       }
     } catch (error) {
@@ -134,20 +119,11 @@ io.on("connection", async (socket) => {
     }
   });
 
-  
   socket.on("disconnect", () => {
     console.log(`User disconnected: ${socket.id}`);
   });
 });
 
-pool.getConnection()
-  .then(connection => {
-    console.log("✅ Successfully connected to the database.");
-    connection.release();
-  })
-  .catch(error => {
-    console.error("❌ Failed to connect to the database:", error);
-  });
 app.get("/", (req, res) => {
   res.send("Chat server is runninnn");
 });
