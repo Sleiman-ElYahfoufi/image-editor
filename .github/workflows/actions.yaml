@@ -62,6 +62,8 @@ jobs:
           script: |
             docker-compose down
             docker rmi ${{ secrets.DOCKER_USERNAME }}/editorserver:latest
+            docker rmi ${{ secrets.DOCKER_USERNAME }}/chatserver:latest
+
             docker-compose up -d
             
             # Wait for the database container to be fully ready
