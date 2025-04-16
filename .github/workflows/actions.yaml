@@ -15,7 +15,7 @@ jobs:
 
       - name: Setup .env file for Laravel
         run: |
-          cd server/image-editor-server
+          cd ../../../server/image-editor-server
           cp .env.example .env
           sed -i "s/DB_PASSWORD=\${{ secrets.DB_PASSWORD }}/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/" .env
 
@@ -26,9 +26,7 @@ jobs:
           password: ${{ secrets.DOCKER_KEY }}
 
       - name: Build Docker image
-        run: |
-          cd server
-          docker build -t ${{ secrets.DOCKER_USERNAME }}/editorserver:latest .
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/editorserver:latest .
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/editorserver:latest
@@ -57,4 +55,4 @@ jobs:
             sleep 20
             
             # Run migrations inside the laravel container
-            docker-compose exec -T ubunut_server_1 php artisan migrate --force
+            docker-compose exec -T app php artisan migrate --force
