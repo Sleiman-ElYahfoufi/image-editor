@@ -149,7 +149,7 @@ pool.getConnection()
     console.error("❌ Failed to connect to the database:", error);
   });
 app.get("/", (req, res) => {
-  res.send("Chat server is running");
+  res.send("Chat server is runninnn");
 });
 
 const PORT = process.env.PORT || 3001;
