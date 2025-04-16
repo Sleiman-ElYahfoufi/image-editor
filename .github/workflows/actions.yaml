@@ -13,9 +13,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      - name: Debug - List repository structure
+        run: |
+          echo "Root directory contents:"
+          ls -la
+          echo "\nServer directory contents:"
+          ls -la server/
+          echo "\nRecursive find for dockerfile:"
+          find . -name "dockerfile" -o -name "Dockerfile"
+
       - name: Setup .env file for Laravel
         run: |
-          cd ../../../server/image-editor-server
+          cd server/image-editor-server
           cp .env.example .env
           sed -i "s/DB_PASSWORD=\${{ secrets.DB_PASSWORD }}/DB_PASSWORD=${{ secrets.DB_PASSWORD }}/" .env
 
@@ -26,7 +35,16 @@ jobs:
           password: ${{ secrets.DOCKER_KEY }}
 
       - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/editorserver:latest .
+        run: |
+          # Try to find and use the dockerfile wherever it is
+          DOCKERFILE_PATH=$(find . -name "dockerfile" -o -name "Dockerfile" | head -1)
+          if [ -z "$DOCKERFILE_PATH" ]; then
+            echo "No Dockerfile found in the repository!"
+            exit 1
+          fi
+          
+          echo "Found Dockerfile at: $DOCKERFILE_PATH"
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/editorserver:latest -f "$DOCKERFILE_PATH" .
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/editorserver:latest
