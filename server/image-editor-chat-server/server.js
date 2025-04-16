@@ -140,7 +140,14 @@ io.on("connection", async (socket) => {
   });
 });
 
-
+pool.getConnection()
+  .then(connection => {
+    console.log("✅ Successfully connected to the database.");
+    connection.release();
+  })
+  .catch(error => {
+    console.error("❌ Failed to connect to the database:", error);
+  });
 app.get("/", (req, res) => {
   res.send("Chat server is running");
 });
