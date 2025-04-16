@@ -20,8 +20,10 @@ const io = new Server(server, {
 const dbConfig = {
   host: "localhost",
   user: "root",
-  password: "",
+  password: "lara",
   database: "image_editor_db",
+  port: 3306,
+
 };
 
 console.log("Database configuration:", {
