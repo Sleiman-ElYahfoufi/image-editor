@@ -71,4 +71,4 @@ jobs:
             sleep 20
             
             # Run migrations inside the laravel container
-            docker-compose exec -i ubuntu_server_1 bash php artisan migrate --force
+            docker-compose exec -i ubuntu_server_1 bash php artisan migrate
