@@ -1,0 +1,31 @@
+services:
+  server:
+    image: riyadmurad44/laravel_electron:latest
+    volumes:
+      - ./image-editor-server:/app
+    environment:
+      - LARAVEL_DATABASE_HOST=database
+      - LARAVEL_DATABASE_NAME=image_editor_db
+      - LARAVEL_DATABASE_USER=root
+      - LARAVEL_DATABASE_PASSWORD=1234
+      - LARAVEL_DATABASE_PORT_NUMBER=3306
+    restart: always
+    ports:
+      - 8000:80
+    depends_on:
+      - database
+    command: ./dockerShell.sh
+  database:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=image_editor_db
+    volumes:
+      - db-data:/var/lib/mysql
+volumes:
+  db-data:
+
+
+
+
+
