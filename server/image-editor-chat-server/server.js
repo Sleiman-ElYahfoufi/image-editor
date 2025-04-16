@@ -18,7 +18,7 @@ const io = new Server(server, {
 });
 
 const dbConfig = {
-  host: "localhost",
+  host: "database",
   user: "root",
   password: "lara",
   database: "image_editor_db",
