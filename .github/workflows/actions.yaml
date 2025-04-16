@@ -31,6 +31,14 @@ jobs:
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKER_USERNAME }}/editorserver:latest
 
+        
+      - name: Build Node.js Chat Server Docker image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/chatserver:latest -f Dockerfile.node .
+
+
+      - name: Push Chat Server Docker image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/chatserver:latest
+
   Deploy-Laravel-Docker:
     needs: Build-Laravel-And-Push-Dockerhub
     runs-on: ubuntu-latest

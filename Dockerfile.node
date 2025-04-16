@@ -1,0 +1,15 @@
+FROM node:16
+
+WORKDIR /app
+
+# Copy the entire application
+COPY ./server/image-editor-chat-server /app/
+
+# Install dependencies
+RUN npm install
+
+# Expose the port the app runs on
+EXPOSE 3001
+
+# Command to run the application
+CMD ["node", "server.js"]
