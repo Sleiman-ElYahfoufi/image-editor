@@ -1,8 +1,6 @@
 services:
   server:
-    image: riyadmurad44/laravel_electron:latest
-    volumes:
-      - ./image-editor-server:/app
+    image: mahditalaldev/dockertest:latest
     environment:
       - LARAVEL_DATABASE_HOST=database
       - LARAVEL_DATABASE_NAME=image_editor_db
@@ -11,10 +9,10 @@ services:
       - LARAVEL_DATABASE_PORT_NUMBER=3306
     restart: always
     ports:
-      - 8000:80
+      - 8000:8000
     depends_on:
       - database
-    command: ./dockerShell.sh
+
   database:
     image: mysql:8.0
     environment:
@@ -22,10 +20,6 @@ services:
       - MYSQL_DATABASE=image_editor_db
     volumes:
       - db-data:/var/lib/mysql
+
 volumes:
   db-data:
-
-
-
-
-
