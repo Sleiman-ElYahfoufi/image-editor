@@ -20,47 +20,15 @@ const io = new Server(server, {
 const dbConfig = {
   host: "database",
   user: "root",
-  password: "lara",
+  password: "",
   database: "image_editor_db",
-  port: 3306,
-
 };
 
-console.log("Database configuration:", {
-  host: dbConfig.host,
-  user: dbConfig.user,
-  database: dbConfig.database,
-  // Not logging password for security reasons
-});
-
 const pool = mysql.createPool(dbConfig);
-
-// Function to test database connection
-async function testDatabaseConnection() {
-  try {
-    const connection = await pool.getConnection();
-    console.log("✅ Successfully connected to MySQL database!");
-    
-    // Test a simple query
-    const [rows] = await connection.execute("SELECT 1 as test");
-    console.log("✅ Test query successful:", rows);
-    
-    connection.release();
-    return true;
-  } catch (error) {
-    console.error("❌ Database connection error:", error.message);
-    console.error("Full error:", error);
-    return false;
-  }
-}
-
-// Test connection when server starts
-testDatabaseConnection();
 
 async function getMessages(limit = 50) {
   try {
     const connection = await pool.getConnection();
-    console.log("Getting chat messages from database...");
 
     const [rows] = await connection.execute(
       `
@@ -73,12 +41,11 @@ async function getMessages(limit = 50) {
       [limit]
     );
 
-    console.log(`Retrieved ${rows.length} messages from database`);
     connection.release();
 
     return rows.reverse();
   } catch (error) {
-    console.error("❌ Database error when getting messages:", error.message);
+    console.error("Database error:", error);
     return [];
   }
 }
@@ -86,7 +53,6 @@ async function getMessages(limit = 50) {
 async function saveMessage(userId, message) {
   try {
     const connection = await pool.getConnection();
-    console.log(`Saving message from user ID ${userId}`);
 
     const [result] = await connection.execute(
       `
@@ -96,12 +62,11 @@ async function saveMessage(userId, message) {
       [userId, message]
     );
 
-    console.log(`Message saved with ID: ${result.insertId}`);
     connection.release();
 
     return result.insertId;
   } catch (error) {
-    console.error("❌ Error saving message:", error.message);
+    console.error("Error saving message:", error);
     return null;
   }
 }
@@ -121,7 +86,7 @@ async function getUsername(userId) {
 
     return rows.length > 0 ? rows[0].username : "Unknown";
   } catch (error) {
-    console.error("❌ Error getting username:", error.message);
+    console.error("Error getting username:", error);
     return "Unknown";
   }
 }
@@ -134,11 +99,6 @@ io.on("connection", async (socket) => {
 
   socket.on("send_message", async (messageData) => {
     try {
-      console.log("Received new message:", {
-        userId: messageData.userId,
-        messageLength: messageData.text?.length || 0
-      });
-      
       const messageId = await saveMessage(messageData.userId, messageData.text);
 
       if (messageId) {
@@ -153,10 +113,9 @@ io.on("connection", async (socket) => {
         };
 
         io.emit("new_message", fullMessage);
-        console.log("Message broadcast to all clients");
       }
     } catch (error) {
-      console.error("❌ Error processing message:", error.message);
+      console.error("Error processing message:", error);
     }
   });
 
@@ -166,31 +125,11 @@ io.on("connection", async (socket) => {
 });
 
 app.get("/", (req, res) => {
-  res.send("Chat server is running with enhanced logging");
-});
-
-// Add a health check endpoint that also checks DB connection
-app.get("/health", async (req, res) => {
-  const dbConnected = await testDatabaseConnection();
-  
-  if (dbConnected) {
-    res.status(200).json({ 
-      status: "healthy",
-      database: "connected",
-      timestamp: new Date().toISOString()
-    });
-  } else {
-    res.status(500).json({ 
-      status: "unhealthy",
-      database: "disconnected",
-      timestamp: new Date().toISOString()
-    });
-  }
+  res.send("Chat server is running");
 });
 
 const PORT = process.env.PORT || 3001;
 
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0',() => {
   console.log(`Chat server running on port ${PORT}`);
-  console.log(`Health check available at http://localhost:${PORT}/health`);
 });
