@@ -4,11 +4,9 @@ import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import fs from 'fs'
 
-// Setup paths
 const userDataPath = app.getPath('userData')
 const imagesPath = path.join(userDataPath, 'images')
 
-// Ensure images directory exists
 !fs.existsSync(imagesPath) && fs.mkdirSync(imagesPath, { recursive: true })
 
 function createWindow() {
@@ -33,7 +31,6 @@ function createWindow() {
     return { action: 'deny' }
   })
 
-  // Always use development URL if available
   if (process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
   } else {
@@ -41,7 +38,6 @@ function createWindow() {
   }
 }
 
-// Helper to scan images directory and return image info
 const scanImagesDirectory = () => {
   try {
     const files = fs.readdirSync(imagesPath)

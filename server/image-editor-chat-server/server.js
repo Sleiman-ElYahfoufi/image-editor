@@ -26,9 +26,10 @@ const dbConfig = {
 
 const pool = mysql.createPool(dbConfig);
 
-async function getMessages(limit = 50) {
+async function getMessages() {
   try {
     const connection = await pool.getConnection();
+
 
     const [rows] = await connection.execute(
       `
@@ -36,9 +37,8 @@ async function getMessages(limit = 50) {
       FROM chat_messages m
       JOIN users u ON m.user_id = u.id
       ORDER BY m.created_at DESC
-      LIMIT ?
-    `,
-      [limit]
+      LIMIT 50
+    `
     );
 
     connection.release();

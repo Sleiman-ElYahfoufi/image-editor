@@ -83,7 +83,7 @@ class AuthTest extends TestCase
 
     public function test_user_can_login()
     {
-        $user = User::factory()->create([
+        User::factory()->create([
             'email' => 'login@example.com',
             'username' => 'loginuser',
             'password' => bcrypt('password123')
@@ -114,23 +114,23 @@ class AuthTest extends TestCase
     }
 
     public function test_user_cannot_login_with_invalid_credentials()
-    {
-        $user = new User();
-        $user->email = 'user@example.com';
-        $user->username = 'validuser';
-        $user->password = bcrypt('correctpassword');
-        $user->save();
+{
+    User::factory()->create([
+        'email' => 'user@example.com',
+        'username' => 'validuser',
+        'password' => bcrypt('correctpassword')
+    ]);
 
-        $loginData = [
-            'username' => 'validuser',
-            'password' => 'wrongpassword'
-        ];
+    $loginData = [
+        'username' => 'validuser',
+        'password' => 'wrongpassword'
+    ];
 
-        $response = $this->postJson('/api/v0.1/guest/login', $loginData);
+    $response = $this->postJson('/api/v0.1/guest/login', $loginData);
 
-        $response->assertStatus(202) 
-            ->assertJson([
-                'success' => false
-            ]);
-    }
+    $response->assertStatus(202) 
+        ->assertJson([
+            'success' => false
+        ]);
+}
 }

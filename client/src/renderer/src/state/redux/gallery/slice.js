@@ -18,25 +18,14 @@ const gallerySlice = createSlice({
     setSelectedImage: (state, action) => {
       state.selectedImage = action.payload;
     },
-    setError: (state, action) => {
-      state.error = action.payload;
-    },
-    addImage: (state, action) => {
-      state.images.push(action.payload);
-    },
-    removeImage: (state, action) => {
-      state.images = state.images.filter(image => image.id !== action.payload);
-    }
+ 
   },
 });
 
 export const { 
   setLoading, 
   setImages, 
-  setSelectedImage, 
-  setError, 
-  addImage, 
-  removeImage
+  setSelectedImage
 } = gallerySlice.actions;
 
 export default gallerySlice;
